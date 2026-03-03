@@ -3,21 +3,19 @@
 import { useEffect, useMemo, useState } from "react";
 import { Container } from "@/components/Container";
 import { Logo } from "@/components/Logo";
+import { MatchScoreCard } from "@/components/MatchScoreCard";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
-import type { Match } from "@/lib/db/types";
-
-function formatWhen(m: Match) {
-  const d = m.match_date ?? m.created_at;
-  if (!d) return "";
-  return new Date(d).toLocaleString();
-}
+import type { Match, Tournament } from "@/lib/db/types";
 
 export default function ScoresPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [matches, setMatches] = useState<Match[]>([]);
+  const [tournamentsById, setTournamentsById] = useState<
+    Map<string, Tournament>
+  >(new Map());
   const [query, setQuery] = useState("");
 
   useEffect(() => {
@@ -37,7 +35,27 @@ export default function ScoresPage() {
         setError(error.message);
         setMatches([]);
       } else {
-        setMatches((data ?? []) as Match[]);
+        const ms = (data ?? []) as Match[];
+        setMatches(ms);
+
+        // Fetch tournaments for the loaded matches so we can show tournament names
+        const uniqueTournamentIds = Array.from(
+          new Set(ms.map((m) => m.tournament_id).filter(Boolean)),
+        ) as string[];
+
+        if (uniqueTournamentIds.length > 0) {
+          const { data: tournamentsData } = await supabase
+            .from("tournaments")
+            .select("*")
+            .in("id", uniqueTournamentIds);
+
+          const tournaments = (tournamentsData ?? []) as Tournament[];
+          setTournamentsById(
+            new Map(tournaments.map((t) => [t.id, t] as const)),
+          );
+        } else {
+          setTournamentsById(new Map());
+        }
       }
       setLoading(false);
     }
@@ -87,28 +105,19 @@ export default function ScoresPage() {
             <div className="text-sm text-white/70">No matches found.</div>
           </Card>
         ) : (
-          filtered.map((m) => (
-            <Card key={m.id}>
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <div className="truncate text-sm font-semibold">
-                    {m.team1 ?? "Team 1"} vs {m.team2 ?? "Team 2"}
+          filtered.map((m) => {
+            const tournament = tournamentsById.get(m.tournament_id);
+            return (
+              <div key={m.id} className="space-y-2">
+                {m.round ? (
+                  <div className="inline-flex items-center gap-2 rounded-full border-l-2 border-brand-sage/80 pl-2 text-[11px] font-medium uppercase tracking-wide text-text-secondary">
+                    {m.round}
                   </div>
-                  <div className="mt-1 text-xs text-white/60">
-                    {formatWhen(m)}
-                  </div>
-                  {m.draw || m.round ? (
-                    <div className="mt-2 text-xs text-white/60">
-                      {[m.draw, m.round].filter(Boolean).join(" • ")}
-                    </div>
-                  ) : null}
-                </div>
-                <div className="shrink-0 text-sm font-semibold">
-                  {(m.score1 ?? 0) + " - " + (m.score2 ?? 0)}
-                </div>
+                ) : null}
+                <MatchScoreCard match={m} tournamentName={tournament?.name} />
               </div>
-            </Card>
-          ))
+            );
+          })
         )}
       </div>
     </Container>

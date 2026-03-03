@@ -4,23 +4,12 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { Container } from "@/components/Container";
+import { MatchScoreCard } from "@/components/MatchScoreCard";
 import { Card } from "@/components/ui/Card";
 import { ButtonLink } from "@/components/ui/Button";
 import { StatusBadge } from "@/components/ui/Badge";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import type { Match, Tournament } from "@/lib/db/types";
-
-function scoreLine(m: Match) {
-  const s1 = m.score1 ?? 0;
-  const s2 = m.score2 ?? 0;
-  return `${s1} - ${s2}`;
-}
-
-function formatMatchDate(m: Match) {
-  const d = m.match_date ?? m.created_at;
-  if (!d) return "";
-  return new Date(d).toLocaleString();
-}
 
 type Grouped = Array<{
   draw: string;
@@ -169,33 +158,27 @@ export default function TournamentDetailPage() {
         ) : (
           grouped.map((d) => (
             <div key={d.draw} className="space-y-3">
-              <div className="text-sm font-semibold text-white/90">
-                {d.draw}
+              <div className="flex items-center gap-2">
+                <div className="h-5 w-1 rounded-full bg-brand-sage/80" />
+                <div className="text-sm font-semibold text-white/90">
+                  {d.draw}
+                </div>
               </div>
               {d.rounds.map((r) => (
-                <Card key={r.round}>
-                  <div className="text-sm font-medium">{r.round}</div>
-                  <div className="mt-3 space-y-3">
+                <div key={r.round} className="space-y-2">
+                  <div className="inline-flex items-center gap-2 rounded-full border-l-2 border-brand-sage/80 pl-2 text-[11px] font-medium uppercase tracking-wide text-text-secondary">
+                    {r.round}
+                  </div>
+                  <div className="space-y-3">
                     {r.matches.map((m) => (
-                      <div
+                      <MatchScoreCard
                         key={m.id}
-                        className="flex items-start justify-between gap-3 border-t border-white/10 pt-3 first:border-t-0 first:pt-0"
-                      >
-                        <div className="min-w-0">
-                          <div className="truncate text-sm font-medium">
-                            {m.team1 ?? "Team 1"} vs {m.team2 ?? "Team 2"}
-                          </div>
-                          <div className="mt-1 text-xs text-white/60">
-                            {formatMatchDate(m)}
-                          </div>
-                        </div>
-                        <div className="shrink-0 text-sm font-semibold">
-                          {scoreLine(m)}
-                        </div>
-                      </div>
+                        match={m}
+                        tournamentName={tournament.name}
+                      />
                     ))}
                   </div>
-                </Card>
+                </div>
               ))}
             </div>
           ))
