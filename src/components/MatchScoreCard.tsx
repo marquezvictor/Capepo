@@ -7,6 +7,12 @@ type MatchScoreCardProps = {
   tournamentName?: string | null;
 };
 
+/** Match with score fields that may be number or string (legacy vs newer formats). */
+type MatchWithFlexibleScores = Omit<Match, "score1" | "score2"> & {
+  score1?: number | string | null;
+  score2?: number | string | null;
+};
+
 type GameColumn = {
   team1?: string;
   team2?: string;
@@ -80,10 +86,11 @@ export function MatchScoreCard({ match, tournamentName }: MatchScoreCardProps) {
   const isWinner1 = winner && winner === team1;
   const isWinner2 = winner && winner === team2;
 
+  const matchScores = match as MatchWithFlexibleScores;
   const gameColumns = parseMatchScores(
     // Support both legacy numeric scores and newer string formats
-    (match as any).score1 ?? match.score1,
-    (match as any).score2 ?? match.score2,
+    matchScores.score1 ?? match.score1,
+    matchScores.score2 ?? match.score2,
   );
 
   const drawLabel = (match.draw ?? "").trim();
