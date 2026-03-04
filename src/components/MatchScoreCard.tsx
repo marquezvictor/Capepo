@@ -126,14 +126,14 @@ export function MatchScoreCard({ match, tournamentName }: MatchScoreCardProps) {
             <div className="flex items-center gap-2">
               <div
                 className={cn(
-                  "grid auto-cols-min grid-flow-col gap-1 text-sm font-mono",
+                  "grid auto-cols-min grid-flow-col gap-1 text-sm font-inter",
                   isWinner1 ? "text-white" : "text-text-secondary",
                 )}
               >
                 {gameColumns.map((g, idx) => (
                   <div
                     key={idx}
-                    className="min-w-[2.25rem] rounded-md border border-white/10 px-2 py-1 text-right"
+                    className="min-w-[2.25rem] rounded-md border border-white/10 px-2 py-1 text-left"
                   >
                     {g.team1 ?? ""}
                   </div>
@@ -165,14 +165,14 @@ export function MatchScoreCard({ match, tournamentName }: MatchScoreCardProps) {
             <div className="flex items-center gap-2">
               <div
                 className={cn(
-                  "grid auto-cols-min grid-flow-col gap-1 text-sm font-mono",
+                  "grid auto-cols-min grid-flow-col gap-1 text-sm font-inter",
                   isWinner2 ? "text-white" : "text-text-secondary",
                 )}
               >
                 {gameColumns.map((g, idx) => (
                   <div
                     key={idx}
-                    className="min-w-[2.25rem] rounded-md border border-white/10 px-2 py-1 text-right"
+                    className="min-w-[2.25rem] rounded-md border border-white/10 px-2 py-1 text-left"
                   >
                     {g.team2 ?? ""}
                   </div>
