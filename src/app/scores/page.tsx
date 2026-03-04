@@ -142,7 +142,7 @@ export default function ScoresPage() {
       if (!groups.has(name)) groups.set(name, []);
       groups.get(name)!.push(m);
     }
-    for (const arr of groups.values()) {
+    for (const arr of Array.from(groups.values())) {
       arr.sort(sortMatchesByRound);
     }
     return Array.from(groups.entries()).sort(([a], [b]) =>
